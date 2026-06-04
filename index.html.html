@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店鋪 OOS 檢查工具 v6</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background-color: #f0f2f5; color: #333; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a73e8; font-size: 22px; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-top: 0; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        select, input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+        
+        .search-box { margin-bottom: 10px; }
+        
+        /* 產品列表樣式 */
+        .product-list { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background: #fafafa; }
+        details { margin-bottom: 10px; background: white; border: 1px solid #eee; border-radius: 4px; }
+        summary { padding: 10px; font-weight: bold; cursor: pointer; background: #f8f9fa; border-radius: 4px; user-select: none; color: #1a73e8; }
+        summary:hover { background: #e9ecef; }
+        .checkbox-group { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .checkbox-item { display: flex; align-items: flex-start; gap: 10px; padding: 4px 0; }
+        .checkbox-item input[type="checkbox"] { width: 20px; height: 20px; margin-top: 2px; cursor: pointer; }
+        .checkbox-item label { font-weight: normal; margin-bottom: 0; cursor: pointer; font-size: 15px; line-height: 1.4; color: #333; width: 100%; }
+        
+        button.submit-btn { background-color: #1a73e8; color: white; border: none; padding: 14px 20px; cursor: pointer; border-radius: 6px; font-size: 16px; width: 100%; font-weight: bold; margin-top: 10px; }
+        button.submit-btn:hover { background-color: #1557b0; }
+        
+        /* 結果輸出區塊 */
+        .result-container { margin-top: 30px; display: none; padding: 15px; background: #e8f0fe; border-radius: 8px; border: 1px solid #d2e3fc; }
+        .result-container h3 { margin-top: 0; color: #1a73e8; font-size: 18px; }
+        textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; resize: vertical; min-height: 200px; font-family: monospace; }
+        .action-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .action-btns button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .btn-copy { background-color: #34a853; color: white; }
+        .btn-reset { background-color: #ea4335; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🛒 店鋪缺貨 (OOS) 紀錄工具</h1>
+    
+    <div class="form-group">
+        <label for="storeSelect">1. 選擇店鋪名稱</label>
+        <select id="storeSelect">
+            <option value="" disabled selected>-- 請選擇店鋪 --</option>
+            <option value="PNS-429 浪澄灣">[PNS-429] 浪澄灣 - FUSION (九龍大角咀海輝道8號浪澄灣2樓2號舖)</option>
+            <option value="PNS-457 何文田">[PNS-457] 何文田 - FUSION (九龍窩打老道 70 號曾榕大廈地下)</option>
+            <option value="WLC-213512 港灣豪庭">[WLC-213512] 港灣豪庭 - 惠康 (九龍大角咀福利街 8 號港灣豪庭廣場 1 樓 125 舖)</option>
+            <option value="WLC-213819 圓方">[WLC-213819] 圓方 - 3hreeSixty (香港九龍尖沙咀柯士甸道西1號圓方1090號舖)</option>
+            <option value="WLC-213850 朗豪坊">[WLC-213850] 朗豪坊 - MARKET PLACE (九龍朗豪坊地庫B2, 8號舖)</option>
+            <option value="WLC-214718 帝后">[WLC-214718] 帝后 - 惠康 (九龍漆咸道南 17-19 號帝后廣場地舖)</option>
+            <option value="WLC-215376 奧海城">[WLC-215376] 奧海城 - MARKET PLACE (九龍大角咀西九龍海庭道18號奧海城II 期地下G1及G10號舖)</option>
+            <option value="WLC-215590 K11">[WLC-215590] K11 - MARKET PLACE (尖沙咀梳士巴利道18號維港文化匯 K11 MUSEA B2 層B201-01A舖)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>2. 選擇缺貨商品 (OOS)</label>
+        <input type="text" id="searchInput" class="search-box" placeholder="輸入關鍵字快速搜尋商品..." onkeyup="filterProducts()">
+        
+        <div class="product-list" id="productList">
+            </div>
+    </div>
+
+    <button class="submit-btn" onclick="generateReport()">生成回答結果</button>
+
+    <div class="result-container" id="resultContainer">
+        <h3>📋 檢查結果 (可直接複製)</h3>
+        <textarea id="resultText" readonly></textarea>
+        <div class="action-btns">
+            <button class="btn-copy" onclick="copyResult()">複製結果</button>
+            <button class="btn-reset" onclick="resetForm()">清除並檢查下一間</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 嘉頓產品清單 (已刪除重量標示)
+    const productData = {
+        "餅乾類 (BISCUIT)": [
+            "嘉頓檸檬夾心餅", "嘉頓芝士夾心餅", "嘉頓5黑全麥梳打餅6包裝", 
+            "嘉頓香蔥薄餅", "嘉頓椰圈", "嘉頓麥芽酥", 
+            "嘉頓朱古力威化", "嘉頓檸檬威化", "嘉頓迷你威化", "嘉頓花生威化"
+        ],
+        "麵包類 - 餐包及軟包": [
+            "嘉頓黑糖提子餐包", "嘉頓小餐包", "嘉頓牛奶餐包", 
+            "嘉頓衛星包", "嘉頓牛油軟包", "嘉頓提子餐包", 
+            "嘉頓甜餐包", "嘉頓扭紋餐包", "高蛋白質餐包", 
+            "嘉頓排包", "嘉頓提子包", "嘉頓芝麻軟包", 
+            "嘉頓香濃牛油丹麥吐司", "嘉頓雙重朱古力丹麥吐司", 
+            "嘉頓英式鬆餅", "嘉頓法國牛角酥", "嘉頓漢堡包", "嘉頓熱狗包"
+        ],
+        "麵包類 - 忌廉檳": [
+            "嘉頓柚子乳酪味忌廉檳", "嘉頓黑芝麻味忌廉檳", "嘉頓車打芝士味忌廉檳", 
+            "嘉頓朱古力味忌廉檳", "嘉頓檸檬味忌廉檳", "嘉頓花生味忌廉檳", "嘉頓雲呢拿味忌廉檳"
+        ],
+        "麵包類 - 方包及健康麥包": [
+            "嘉頓十三穀三文治包(6片)", "嘉頓奇亞籽三文治麥包(6片)", "嘉頓純麥包(11片)", 
+            "嘉頓番茄香草酸種三文治包(6片)", "嘉頓三色藜麥南瓜籽三文治包", "胚芽全麥麵包", 
+            "嘉頓五黑厚切湯種吐司", "嘉頓牛油方包(6片)", "嘉頓蜜糖雞蛋方包(6片)", 
+            "嘉頓牛奶方包(6片)", "嘉頓幼麥方包(6片)", "嘉頓切皮三文治方包(6片)", 
+            "嘉頓切皮三文治方包(12片)", "嘉頓特厚切皮三文治方包(4片)", "嘉頓特厚切皮三文治麥包(4片)", 
+            "嘉頓切皮三文治方麥包(12片)", "嘉頓切皮三文治方麥包(6片)", "嘉頓特厚切方包(4片)", 
+            "嘉頓生命麵包(14片)", "嘉頓生命麵包全蛋白質(14片)", "嘉頓生命麵包蜜糖雞蛋(14片)", 
+            "嘉頓生命麥包(14片)", "嘉頓多穀三文治方包(8片)", "嘉頓紫薯牛奶厚切湯種吐司(4片)", 
+            "嘉頓方包(8片)", "嘉頓原條方包 (18片)", "嘉頓厚切方包(6片)", 
+            "嘉頓厚切方麥包(6片)", "嘉頓薄切方包(10片)", "嘉頓方麥包(8片)"
+        ],
+        "蛋糕類 - 牛油及海綿蛋糕": [
+            "嘉頓孖寶蛋糕藍莓", "嘉頓孖寶蛋糕櫻桃提子", "嘉頓孖寶蛋糕特濃朱古力", 
+            "嘉頓孖寶蛋糕合桃", "嘉頓合桃蛋糕", "嘉頓朱古力味忌廉夾心小蛋糕", 
+            "嘉頓奶油味莉萊蛋糕", "嘉頓檸檬味莉萊蛋糕", "嘉頓香橙味莉萊蛋糕", 
+            "嘉頓菠蘿味莉萊蛋糕", "嘉頓星級夾心海綿蛋糕牛奶味", "嘉頓星級夾心海綿蛋糕朱古力咖啡味", 
+            "嘉頓熱香餅", "嘉頓朱古力味雪芳蛋糕", "嘉頓檸檬味雪芳蛋糕", 
+            "嘉頓牛奶味雪芳蛋糕", "嘉頓香橙味雪芳蛋糕", "嘉頓芝士味雪芳蛋糕", 
+            "嘉頓朱古力超軟蛋糕", "嘉頓雲呢拿味超軟蛋糕"
+        ],
+        "蛋糕類 - 瑞士卷": [
+            "嘉頓朱古力迷你瑞士卷", "嘉頓椰子朱古力咖啡味迷你瑞士卷", "嘉頓檸檬迷你瑞士卷", 
+            "嘉頓芒果迷你瑞士卷", "嘉頓香橙迷你瑞士卷", "嘉頓花生迷你瑞士卷", "嘉頓迷你瑞士卷 – 雙重抹茶味"
+        ]
+    };
+
+    // 初始化載入產品列表
+    function renderProducts() {
+        const container = document.getElementById('productList');
+        let html = '';
+        let catIndex = 0;
+        
+        for (const [category, products] of Object.entries(productData)) {
+            html += `<details class="product-category">
+                        <summary>${category} (${products.length})</summary>
+                        <div class="checkbox-group">`;
+            
+            products.forEach((product, prodIndex) => {
+                const id = `chk_${catIndex}_${prodIndex}`;
+                html += `<div class="checkbox-item">
+                            <input type="checkbox" id="${id}" value="${product}" class="oos-checkbox">
+                            <label for="${id}">${product}</label>
+                         </div>`;
+            });
+            
+            html += `</div></details>`;
+            catIndex++;
+        }
+        container.innerHTML = html;
+    }
+
+    // 搜尋過濾產品
+    function filterProducts() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const items = document.querySelectorAll('.checkbox-item');
+        const categories = document.querySelectorAll('.product-category');
+
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            if (text.includes(keyword)) {
+                item.style.display = "flex";
+            } else {
+                item.style.display = "none";
+            }
+        });
+
+        categories.forEach(category => {
+            const visibleItems = category.querySelectorAll('.checkbox-item[style="display: flex;"]');
+            if (keyword === "") {
+                category.style.display = "block";
+                category.open = false; 
+            } else {
+                category.style.display = visibleItems.length > 0 ? "block" : "none";
+                if (visibleItems.length > 0) category.open = true; 
+            }
+        });
+    }
+
+    // 生成文字報告
+    function generateReport() {
+        const storeSelect = document.getElementById('storeSelect');
+        const storeHeader = storeSelect.value;
+        
+        if (!storeHeader) {
+            alert('請先選擇店鋪名稱！');
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('.oos-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert('請至少選擇一項 OOS 缺貨商品！');
+            return;
+        }
+
+        // 依據要求的格式生成文字
+        let reportText = `${storeHeader}\n\nOOS\n`;
+        
+        checkboxes.forEach(cb => {
+            reportText += `${cb.value}\n`;
+        });
+
+        document.getElementById('resultText').value = reportText;
+        document.getElementById('resultContainer').style.display = 'block';
+        
+        document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 複製結果到剪貼簿
+    function copyResult() {
+        const textToCopy = document.getElementById('resultText');
+        textToCopy.select();
+        textToCopy.setSelectionRange(0, 99999); 
+        document.execCommand("copy");
+        
+        const btn = document.querySelector('.btn-copy');
+        const originalText = btn.innerText;
+        btn.innerText = '✅ 已複製結果！';
+        btn.style.backgroundColor = '#1e8e3e';
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.backgroundColor = '#34a853';
+        }, 2000);
+    }
+
+    // 清除表單檢查下一間
+    function resetForm() {
+        if(confirm('確定要清除所有選項並檢查下一間嗎？')) {
+            document.getElementById('storeSelect').value = '';
+            document.getElementById('searchInput').value = '';
+            const checkboxes = document.querySelectorAll('.oos-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            document.getElementById('resultContainer').style.display = 'none';
+            filterProducts(); 
+            window.scrollTo(0, 0);
+        }
+    }
+
+    window.onload = renderProducts;
+</script>
+
+</body>
+</html>
