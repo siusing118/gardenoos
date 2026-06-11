@@ -200,6 +200,9 @@
         checkboxes.forEach(cb => {
             reportText += `${cb.value}\n`;
         });
+        
+        // 加上已通知經理的字句
+        reportText += `\n已通知經理`;
 
         document.getElementById('resultText').value = reportText;
         document.getElementById('resultContainer').style.display = 'block';
