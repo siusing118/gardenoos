@@ -9,7 +9,9 @@
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         h1 { text-align: center; color: #1a73e8; font-size: 22px; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-top: 0; }
 
-        .top-actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+        .top-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tool-switch { color: #1a73e8; font-size: 13px; font-weight: bold; text-decoration: none; }
+        .tool-switch:hover { text-decoration: underline; }
         .btn-history { background-color: #fff; color: #1a73e8; border: 1px solid #1a73e8; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-history:hover { background-color: #e8f0fe; }
 
@@ -72,6 +74,7 @@
     <h1>🛒 店鋪缺貨 (OOS) 紀錄工具</h1>
 
     <div class="top-actions">
+        <a class="tool-switch" href="old.html">舊產品清單 →</a>
         <button class="btn-history" onclick="toggleHistory()">📜 歷史紀錄 (<span id="historyBadge">0</span>)</button>
     </div>
 
